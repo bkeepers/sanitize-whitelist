@@ -1,4 +1,11 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in sanitize-whitelist.gemspec
 gemspec
+
+group :guard do
+  gem 'guard-rspec'
+  gem 'guard-bundler'
+  gem 'rb-fsevent'
+end
+
+gem "byebug"
