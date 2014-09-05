@@ -1,5 +1,5 @@
 module Sanitize
-  module Whitelist
+  class Whitelist
     VERSION = "0.0.1"
   end
 end
