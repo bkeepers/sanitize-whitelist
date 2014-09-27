@@ -44,6 +44,7 @@ class Sanitize
     def initialize
       @allowed_elements = {}
       @remove = []
+      @transformers = []
     end
 
     def allow(elements)
@@ -68,11 +69,16 @@ class Sanitize
       @allowed_elements[name] ||= Sanitize::Whitelist::Element.new(name)
     end
 
+    def transform(&block)
+      @transformers << block
+    end
+
     def to_h
       {}.tap do |result|
         result[:elements] = @allowed_elements.keys
         result[:remove_contents] = @remove_non_whitelisted unless @remove_non_whitelisted.nil?
         result[:remove_contents] = @remove unless @remove.empty?
+        result[:transformers] = @transformers unless @transformers.empty?
 
         attributes = @allowed_elements.values.each_with_object({}) do |element,attrs|
           attrs.merge! element.to_h

@@ -67,4 +67,12 @@ describe Sanitize::Whitelist do
       })
     end
   end
+
+  describe "transform" do
+    it "adds block to transformers" do
+      block = lambda { }
+      whitelist.transform(&block)
+      expect(whitelist.to_h).to eq({:transformers => [block], :elements => []})
+    end
+  end
 end
