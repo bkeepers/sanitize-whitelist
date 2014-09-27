@@ -72,7 +72,7 @@ class Sanitize
 
     def to_h
       {}.tap do |result|
-        result[:elements] = @allowed_elements.keys unless @allowed_elements.empty?
+        result[:elements] = @allowed_elements.keys
         result[:remove_contents] = @remove_non_whitelisted unless @remove_non_whitelisted.nil?
         result[:remove_contents] = @remove unless @remove.empty?
 
@@ -89,3 +89,4 @@ class Sanitize
     end
   end
 end
+

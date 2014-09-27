@@ -3,6 +3,10 @@ require "spec_helper"
 describe Sanitize::Whitelist do
   let(:whitelist) { Sanitize::Whitelist.new }
   describe "allow" do
+    it "allows nothing by default" do
+      expect(whitelist.to_h).to eq({:elements => []})
+    end
+
     it "adds a single element" do
       whitelist.allow "div"
       expect(whitelist.to_h).to eq({:elements => ["div"]})
@@ -23,19 +27,19 @@ describe Sanitize::Whitelist do
   describe "remove" do
     it "adds a single element" do
       whitelist.remove "script"
-      expect(whitelist.to_h).to eq({:remove_contents =>  %w(script)})
+      expect(whitelist.to_h).to eq({:remove_contents =>  %w(script), :elements => []})
     end
 
     it "adds an array of elements" do
       whitelist.remove %w(script object)
-      expect(whitelist.to_h).to eq({:remove_contents =>  %w(script object)})
+      expect(whitelist.to_h).to eq({:remove_contents =>  %w(script object), :elements => []})
     end
   end
 
   describe "remove_non_whitelisted!" do
     it "sets remove_contents to true" do
       whitelist.remove_non_whitelisted!
-      expect(whitelist.to_h).to eq({:remove_contents => true})
+      expect(whitelist.to_h).to eq({:remove_contents => true, :elements => []})
     end
   end
 
