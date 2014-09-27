@@ -47,9 +47,7 @@ class Sanitize
     end
 
     def allow(elements)
-      Array(elements).each do |name|
-        @allowed_elements[name] ||= Element.new(name)
-      end
+      Array(elements).map { |name| element(name) }
     end
 
     def remove(boolean_or_elements)
@@ -66,8 +64,8 @@ class Sanitize
       @remove_non_whitelisted = false
     end
 
-    def [](name)
-      @allowed_elements[name] ||= Element.new(name)
+    def element(name)
+      @allowed_elements[name] ||= Sanitize::Whitelist::Element.new(name)
     end
 
     def to_h

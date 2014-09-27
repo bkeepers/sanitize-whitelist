@@ -45,14 +45,14 @@ describe Sanitize::Whitelist do
 
   describe "element#allow" do
     it "adds a single attribute" do
-      whitelist["a"].allow("href")
+      whitelist.element("a").allow("href")
       expect(whitelist.to_h).to eq({:elements => ["a"], :attributes => {"a" => ["href"]}})
     end
   end
 
   describe "attribute#protocols" do
     it "adds a single protocol" do
-      whitelist["a"].allow("href").protocols("https")
+      whitelist.element("a").allow("href").protocols("https")
       expect(whitelist.to_h).to eq({
         :protocols => {"a" => {"href" => ["https"]}},
         :elements => ["a"], :attributes => {"a" => ["href"]}
@@ -60,7 +60,7 @@ describe Sanitize::Whitelist do
     end
 
     it "adds multiple protocols" do
-      whitelist["a"].allow("href").protocols(%w(http https ftp))
+      whitelist.element("a").allow("href").protocols(%w(http https ftp))
       expect(whitelist.to_h).to eq({
         :protocols => {"a" => {"href" => %w(http https ftp)}},
         :elements => ["a"], :attributes => {"a" => ["href"]}
