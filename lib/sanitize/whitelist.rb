@@ -1,6 +1,6 @@
 require "sanitize/whitelist/version"
 
-module Sanitize
+class Sanitize
   class Whitelist
     class Element
       def initialize(name)
