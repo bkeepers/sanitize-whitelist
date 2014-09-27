@@ -1,58 +1,96 @@
 require "spec_helper"
 
 describe Sanitize::Whitelist do
-  let(:whitelist) { Sanitize::Whitelist.new }
+  describe "initialize" do
+    it "instance_evals block with arity of 0" do
+      whitelist = Sanitize::Whitelist.new { allow "div" }
+      expect(whitelist.to_h).to eq({:elements => ["div"]})
+    end
+
+    it "yields with self as arg if arity of 1" do
+      self_in_block = nil
+      arg_in_block = nil
+      whitelist = Sanitize::Whitelist.new do |w|
+        w.allow "div"
+        arg_in_block = w
+        self_in_block = self
+      end
+      expect(whitelist.to_h).to eq({:elements => ["div"]})
+      expect(arg_in_block).to be(whitelist)
+      expect(self_in_block).to be(self)
+    end
+
+    it "freezes elements after initialization" do
+      whitelist = Sanitize::Whitelist.new do
+        allow "div"
+        element("a").allow("href")
+      end
+      expect { whitelist.allow("p") }.to raise_error(RuntimeError, /frozen/)
+      expect { whitelist.element("div").allow("class") }.to raise_error(RuntimeError, /frozen/)
+      expect { whitelist.element("a").allow("href").protocols("http") }.to raise_error(RuntimeError, /frozen/)
+    end
+
+    it "freezes elements after initialization" do
+      whitelist = Sanitize::Whitelist.new
+      expect { whitelist.allow "div" }.to raise_error(RuntimeError, /frozen/)
+    end
+
+  end
+
   describe "allow" do
     it "allows nothing by default" do
+      whitelist = Sanitize::Whitelist.new
       expect(whitelist.to_h).to eq({:elements => []})
     end
 
     it "adds a single element" do
-      whitelist.allow "div"
+      whitelist = Sanitize::Whitelist.new { allow "div" }
       expect(whitelist.to_h).to eq({:elements => ["div"]})
     end
 
     it "adds an array of elements" do
-      whitelist.allow %w(div p)
+      whitelist = Sanitize::Whitelist.new { allow %w(div p) }
       expect(whitelist.to_h).to eq({:elements =>  %w(div p)})
     end
 
     it "adds multiple calls" do
-      whitelist.allow "p"
-      whitelist.allow "a"
+      whitelist = Sanitize::Whitelist.new do
+        allow "p"
+        allow "a"
+      end
       expect(whitelist.to_h).to eq({:elements =>  %w(p a)})
     end
   end
 
   describe "remove" do
     it "adds a single element" do
-      whitelist.remove "script"
+      whitelist = Sanitize::Whitelist.new { remove "script" }
       expect(whitelist.to_h).to eq({:remove_contents =>  %w(script), :elements => []})
     end
 
     it "adds an array of elements" do
-      whitelist.remove %w(script object)
+      whitelist = Sanitize::Whitelist.new { remove %w(script object) }
       expect(whitelist.to_h).to eq({:remove_contents =>  %w(script object), :elements => []})
     end
   end
 
   describe "remove_non_whitelisted!" do
     it "sets remove_contents to true" do
-      whitelist.remove_non_whitelisted!
+      whitelist = Sanitize::Whitelist.new { remove_non_whitelisted! }
       expect(whitelist.to_h).to eq({:remove_contents => true, :elements => []})
     end
   end
 
   describe "element#allow" do
     it "adds a single attribute" do
-      whitelist.element("a").allow("href")
+      whitelist = Sanitize::Whitelist.new { element("a").allow("href") }
       expect(whitelist.to_h).to eq({:elements => ["a"], :attributes => {"a" => ["href"]}})
     end
   end
 
   describe "attribute#protocols" do
     it "adds a single protocol" do
-      whitelist.element("a").allow("href").protocols("https")
+      whitelist = Sanitize::Whitelist.new { element("a").allow("href").protocols("https") }
       expect(whitelist.to_h).to eq({
         :protocols => {"a" => {"href" => ["https"]}},
         :elements => ["a"], :attributes => {"a" => ["href"]}
@@ -60,7 +98,9 @@ describe Sanitize::Whitelist do
     end
 
     it "adds multiple protocols" do
-      whitelist.element("a").allow("href").protocols(%w(http https ftp))
+      whitelist = Sanitize::Whitelist.new do
+        element("a").allow("href").protocols(%w(http https ftp))
+      end
       expect(whitelist.to_h).to eq({
         :protocols => {"a" => {"href" => %w(http https ftp)}},
         :elements => ["a"], :attributes => {"a" => ["href"]}
@@ -71,7 +111,7 @@ describe Sanitize::Whitelist do
   describe "transform" do
     it "adds block to transformers" do
       block = lambda { }
-      whitelist.transform(&block)
+      whitelist = Sanitize::Whitelist.new { transform(&block) }
       expect(whitelist.to_h).to eq({:transformers => [block], :elements => []})
     end
   end

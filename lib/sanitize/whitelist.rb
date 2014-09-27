@@ -1,50 +1,23 @@
-require "sanitize/whitelist/version"
-
 class Sanitize
   class Whitelist
-    class Element
-      def initialize(name)
-        @name = name
-        @attributes = {}
-      end
 
-      def allow(attributes)
-        result = Array(attributes).map do |attr|
-          @attributes[attr] = Attribute.new(attr)
-        end
-        result.size == 1 ? result.first : result
-      end
-
-      def to_h
-        @attributes.empty? ? {} : {@name => @attributes.keys}
-      end
-
-      def to_protocols_hash
-        @attributes.values.each_with_object({}) do |attribute, result|
-          result.merge! @name => attribute.to_h unless attribute.to_h.empty?
-        end
-      end
-    end
-
-    class Attribute
-      def initialize(name)
-        @name = name
-        @protocols = []
-      end
-
-      def protocols(protocols)
-        @protocols |= Array(protocols)
-      end
-
-      def to_h
-        @protocols.empty? ? {} : {@name => @protocols}
-      end
-    end
-
-    def initialize
+    def initialize(&block)
       @allowed_elements = {}
       @remove = []
       @transformers = []
+      eval_block(&block)
+      freeze
+    end
+
+    def freeze
+      super
+      @allowed_elements.freeze.values.each(&:freeze)
+      @remove.freeze
+      @transformers.freeze
+    end
+
+    def eval_block(&block)
+      block.arity == 1 ? block.call(self) : instance_eval(&block) if block
     end
 
     def allow(elements)
@@ -94,3 +67,6 @@ class Sanitize
   end
 end
 
+require "sanitize/whitelist/version"
+require "sanitize/whitelist/attribute"
+require "sanitize/whitelist/element"
