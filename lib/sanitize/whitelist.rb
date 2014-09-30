@@ -66,7 +66,7 @@ class Sanitize
       @elements.values.select(&:remove?)
     end
 
-    def to_h
+    def to_hash
       {}.tap do |result|
         result[:elements] = allowed_elements.map(&:name)
 
@@ -80,7 +80,7 @@ class Sanitize
         result[:transformers] = @transformers unless @transformers.empty?
 
         attributes = allowed_elements.each_with_object({}) do |element,attrs|
-          attrs.merge! element.to_h
+          attrs.merge! element.to_hash
         end
         result[:attributes] = attributes unless attributes.empty?
 

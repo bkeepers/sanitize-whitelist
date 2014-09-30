@@ -43,13 +43,13 @@ class Sanitize::Whitelist::Element
     result.size == 1 ? result.first : result
   end
 
-  def to_h
+  def to_hash
     @attributes.empty? ? {} : {@name => @attributes.keys}
   end
 
   def to_protocols_hash
     @attributes.values.each_with_object({}) do |attribute, result|
-      result.merge! @name => attribute.to_h unless attribute.to_h.empty?
+      result.merge! @name => attribute.to_hash unless attribute.to_hash.empty?
     end
   end
 end

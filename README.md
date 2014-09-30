@@ -8,7 +8,7 @@ This wraps it with real objects, which means:
 
 - The entire whitelist is frozen after the yielded block.
 - #dup behaves as expected and returns a deep clone
-- #to_h creates a hash that can be passed to the sanitize gem
+- #to_hash creates a hash that can be passed to the sanitize gem
 
 ## Installation
 

@@ -7,7 +7,7 @@ class Sanitize::Whitelist::Attribute
     @protocols = Array(protocols)
   end
 
-  def to_h
+  def to_hash
     @protocols ? {@name => @protocols} : {}
   end
 

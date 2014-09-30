@@ -4,7 +4,7 @@ describe Sanitize::Whitelist do
   describe "initialize" do
     it "instance_evals block with arity of 0" do
       whitelist = Sanitize::Whitelist.new { allow "div" }
-      expect(whitelist.to_h).to eq({:elements => ["div"]})
+      expect(whitelist.to_hash).to eq({:elements => ["div"]})
     end
 
     it "yields with self as arg if arity of 1" do
@@ -15,7 +15,7 @@ describe Sanitize::Whitelist do
         arg_in_block = w
         self_in_block = self
       end
-      expect(whitelist.to_h).to eq({:elements => ["div"]})
+      expect(whitelist.to_hash).to eq({:elements => ["div"]})
       expect(arg_in_block).to be(whitelist)
       expect(self_in_block).to be(self)
     end
@@ -34,17 +34,17 @@ describe Sanitize::Whitelist do
   describe "allow" do
     it "allows nothing by default" do
       whitelist = Sanitize::Whitelist.new
-      expect(whitelist.to_h).to eq({:elements => []})
+      expect(whitelist.to_hash).to eq({:elements => []})
     end
 
     it "adds a single element" do
       whitelist = Sanitize::Whitelist.new { allow "div" }
-      expect(whitelist.to_h).to eq({:elements => ["div"]})
+      expect(whitelist.to_hash).to eq({:elements => ["div"]})
     end
 
     it "adds an array of elements" do
       whitelist = Sanitize::Whitelist.new { allow %w(div p) }
-      expect(whitelist.to_h).to eq({:elements =>  %w(div p)})
+      expect(whitelist.to_hash).to eq({:elements =>  %w(div p)})
     end
 
     it "adds multiple calls" do
@@ -52,40 +52,40 @@ describe Sanitize::Whitelist do
         allow "p"
         allow "a"
       end
-      expect(whitelist.to_h).to eq({:elements =>  %w(p a)})
+      expect(whitelist.to_hash).to eq({:elements =>  %w(p a)})
     end
   end
 
   describe "remove" do
     it "adds a single element" do
       whitelist = Sanitize::Whitelist.new { remove "script" }
-      expect(whitelist.to_h).to eq({:remove_contents =>  %w(script), :elements => []})
+      expect(whitelist.to_hash).to eq({:remove_contents =>  %w(script), :elements => []})
     end
 
     it "adds an array of elements" do
       whitelist = Sanitize::Whitelist.new { remove %w(script object) }
-      expect(whitelist.to_h).to eq({:remove_contents =>  %w(script object), :elements => []})
+      expect(whitelist.to_hash).to eq({:remove_contents =>  %w(script object), :elements => []})
     end
   end
 
   describe "remove_non_whitelisted!" do
     it "sets remove_contents to true" do
       whitelist = Sanitize::Whitelist.new { remove_non_whitelisted! }
-      expect(whitelist.to_h).to eq({:remove_contents => true, :elements => []})
+      expect(whitelist.to_hash).to eq({:remove_contents => true, :elements => []})
     end
   end
 
   describe "element#allow" do
     it "adds a single attribute" do
       whitelist = Sanitize::Whitelist.new { element("a").allow("href") }
-      expect(whitelist.to_h).to eq({:elements => ["a"], :attributes => {"a" => ["href"]}})
+      expect(whitelist.to_hash).to eq({:elements => ["a"], :attributes => {"a" => ["href"]}})
     end
   end
 
   describe "attribute#protocols" do
     it "adds a single protocol" do
       whitelist = Sanitize::Whitelist.new { element("a").allow("href").protocols("https") }
-      expect(whitelist.to_h).to eq({
+      expect(whitelist.to_hash).to eq({
         :protocols => {"a" => {"href" => ["https"]}},
         :elements => ["a"], :attributes => {"a" => ["href"]}
       })
@@ -95,7 +95,7 @@ describe Sanitize::Whitelist do
       whitelist = Sanitize::Whitelist.new do
         element("a").allow("href").protocols(%w(http https ftp))
       end
-      expect(whitelist.to_h).to eq({
+      expect(whitelist.to_hash).to eq({
         :protocols => {"a" => {"href" => %w(http https ftp)}},
         :elements => ["a"], :attributes => {"a" => ["href"]}
       })
@@ -105,7 +105,7 @@ describe Sanitize::Whitelist do
       whitelist = Sanitize::Whitelist.new do
         element("a").allow("href").protocols([])
       end
-      expect(whitelist.to_h).to eq({
+      expect(whitelist.to_hash).to eq({
         :protocols => {"a" => {"href" => []}},
         :elements => ["a"], :attributes => {"a" => ["href"]}
       })
@@ -116,7 +116,7 @@ describe Sanitize::Whitelist do
     it "adds block to transformers" do
       block = lambda { }
       whitelist = Sanitize::Whitelist.new { transform(&block) }
-      expect(whitelist.to_h).to eq({:transformers => [block], :elements => []})
+      expect(whitelist.to_hash).to eq({:transformers => [block], :elements => []})
     end
   end
 
@@ -125,32 +125,32 @@ describe Sanitize::Whitelist do
 
     it "dups elements" do
       dup = whitelist.dup { allow "div" }
-      expect(dup.to_h).to eq({:elements => ["p", "div"]})
-      expect(whitelist.to_h).to eq({:elements => ["p"]})
+      expect(dup.to_hash).to eq({:elements => ["p", "div"]})
+      expect(whitelist.to_hash).to eq({:elements => ["p"]})
     end
 
     it "does not remove from original" do
       dup = whitelist.dup { remove "p" }
-      expect(dup.to_h).to eq({:elements => [], :remove_contents => ["p"]})
-      expect(whitelist.to_h).to eq({:elements => ["p"]})
+      expect(dup.to_hash).to eq({:elements => [], :remove_contents => ["p"]})
+      expect(whitelist.to_hash).to eq({:elements => ["p"]})
     end
 
     it "dups attributes" do
       dup = whitelist.dup { element("p").allow("class") }
-      expect(dup.to_h).to eq({:elements => ["p"], :attributes => {"p" => ["class"]}})
-      expect(whitelist.to_h).to eq({:elements => ["p"]})
+      expect(dup.to_hash).to eq({:elements => ["p"], :attributes => {"p" => ["class"]}})
+      expect(whitelist.to_hash).to eq({:elements => ["p"]})
     end
 
     it "dups protocols" do
       whitelist = Sanitize::Whitelist.new { element("a").allow("href").protocols("ftp") }
       dup = whitelist.dup { element("a").allow("href").protocols("https") }
 
-      expect(dup.to_h).to eq({
+      expect(dup.to_hash).to eq({
         :elements => ["a"],
         :attributes => {"a" => ["href"]},
         :protocols => {"a" => {"href" => ["https"]}}
       })
-      expect(whitelist.to_h).to eq({
+      expect(whitelist.to_hash).to eq({
         :elements => ["a"],
         :attributes => {"a" => ["href"]},
         :protocols => {"a" => {"href" => ["ftp"]}}
