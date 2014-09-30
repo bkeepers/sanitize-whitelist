@@ -2,8 +2,7 @@ class Sanitize
   class Whitelist
 
     def initialize(&block)
-      @allowed_elements = {}
-      @remove = []
+      @elements = {}
       @transformers = []
       eval_block(&block)
       freeze
@@ -11,8 +10,7 @@ class Sanitize
 
     def freeze
       super
-      @allowed_elements.freeze.values.each(&:freeze)
-      @remove.freeze
+      @elements.freeze.values.each(&:freeze)
       @transformers.freeze
     end
 
@@ -25,12 +23,10 @@ class Sanitize
     end
 
     def remove(boolean_or_elements)
-      @remove_non_whitelisted = false
-      @remove |= Array(boolean_or_elements)
+      Array(boolean_or_elements).map { |name| element(name).remove! }
     end
 
     def remove_non_whitelisted!
-      @remove = []
       @remove_non_whitelisted = true
     end
 
@@ -39,26 +35,40 @@ class Sanitize
     end
 
     def element(name)
-      @allowed_elements[name] ||= Sanitize::Whitelist::Element.new(name)
+      @elements[name] ||= Sanitize::Whitelist::Element.new(name)
     end
 
     def transform(&block)
       @transformers << block
     end
 
+    def allowed_elements
+      @elements.values.select(&:allowed?)
+    end
+
+    def remove_elements
+      @elements.values.select(&:remove?)
+    end
+
     def to_h
       {}.tap do |result|
-        result[:elements] = @allowed_elements.keys
-        result[:remove_contents] = @remove_non_whitelisted unless @remove_non_whitelisted.nil?
-        result[:remove_contents] = @remove unless @remove.empty?
+        result[:elements] = allowed_elements.map(&:name)
+
+        if @remove_non_whitelisted
+          result[:remove_contents] = @remove_non_whitelisted
+        else
+          elements = remove_elements.map(&:name)
+          result[:remove_contents] = elements unless elements.empty?
+        end
+
         result[:transformers] = @transformers unless @transformers.empty?
 
-        attributes = @allowed_elements.values.each_with_object({}) do |element,attrs|
+        attributes = allowed_elements.each_with_object({}) do |element,attrs|
           attrs.merge! element.to_h
         end
         result[:attributes] = attributes unless attributes.empty?
 
-        protocols = @allowed_elements.values.each_with_object({}) do |element,attrs|
+        protocols = allowed_elements.each_with_object({}) do |element,attrs|
           attrs.merge! element.to_protocols_hash
         end
         result[:protocols] = protocols unless protocols.empty?

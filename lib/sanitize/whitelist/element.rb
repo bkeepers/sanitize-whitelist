@@ -1,13 +1,32 @@
 class Sanitize::Whitelist::Element
+  attr_reader :name
+
   def initialize(name)
     @name = name
     @attributes = {}
+    @allowed = true
   end
 
   def freeze
     super
     @attributes.values.each(&:freeze)
     @attributes.freeze
+  end
+
+  def allow!
+    @allowed = true
+  end
+
+  def allowed?
+    !!@allowed
+  end
+
+  def remove!
+    @allowed = false
+  end
+
+  def remove?
+    !@allowed
   end
 
   def allow(attributes)
