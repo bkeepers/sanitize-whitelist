@@ -1,5 +1,5 @@
 class Sanitize::Whitelist::Element
-  attr_reader :name
+  attr_reader :name, :attributes
 
   def initialize(name)
     @name = name
@@ -11,6 +11,13 @@ class Sanitize::Whitelist::Element
     super
     @attributes.values.each(&:freeze)
     @attributes.freeze
+  end
+
+  def initialize_dup(original)
+    super
+    @attributes = original.attributes.each_with_object({}) do |(key,value), result|
+      result[key] = value.dup
+    end
   end
 
   def allow!

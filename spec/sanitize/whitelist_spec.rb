@@ -29,12 +29,6 @@ describe Sanitize::Whitelist do
       expect { whitelist.element("div").allow("class") }.to raise_error(RuntimeError, /frozen/)
       expect { whitelist.element("a").allow("href").protocols("http") }.to raise_error(RuntimeError, /frozen/)
     end
-
-    it "freezes elements after initialization" do
-      whitelist = Sanitize::Whitelist.new
-      expect { whitelist.allow "div" }.to raise_error(RuntimeError, /frozen/)
-    end
-
   end
 
   describe "allow" do
@@ -113,6 +107,44 @@ describe Sanitize::Whitelist do
       block = lambda { }
       whitelist = Sanitize::Whitelist.new { transform(&block) }
       expect(whitelist.to_h).to eq({:transformers => [block], :elements => []})
+    end
+  end
+
+  describe "dup" do
+    let(:whitelist) { Sanitize::Whitelist.new { allow "p" } }
+
+    it "dups elements" do
+      dup = whitelist.dup { allow "div" }
+      expect(dup.to_h).to eq({:elements => ["p", "div"]})
+      expect(whitelist.to_h).to eq({:elements => ["p"]})
+    end
+
+    it "does not remove from original" do
+      dup = whitelist.dup { remove "p" }
+      expect(dup.to_h).to eq({:elements => [], :remove_contents => ["p"]})
+      expect(whitelist.to_h).to eq({:elements => ["p"]})
+    end
+
+    it "dups attributes" do
+      dup = whitelist.dup { element("p").allow("class") }
+      expect(dup.to_h).to eq({:elements => ["p"], :attributes => {"p" => ["class"]}})
+      expect(whitelist.to_h).to eq({:elements => ["p"]})
+    end
+
+    it "dups protocols" do
+      whitelist = Sanitize::Whitelist.new { element("a").allow("href").protocols("ftp") }
+      dup = whitelist.dup { element("a").allow("href").protocols("https") }
+
+      expect(dup.to_h).to eq({
+        :elements => ["a"],
+        :attributes => {"a" => ["href"]},
+        :protocols => {"a" => {"href" => ["https"]}}
+      })
+      expect(whitelist.to_h).to eq({
+        :elements => ["a"],
+        :attributes => {"a" => ["href"]},
+        :protocols => {"a" => {"href" => ["ftp"]}}
+      })
     end
   end
 end

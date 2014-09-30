@@ -1,5 +1,6 @@
 class Sanitize
   class Whitelist
+    attr_reader :elements, :transformers
 
     def initialize(&block)
       @elements = {}
@@ -12,6 +13,21 @@ class Sanitize
       super
       @elements.freeze.values.each(&:freeze)
       @transformers.freeze
+    end
+
+    def initialize_dup(original)
+      @elements = original.elements.each_with_object({}) do |(name,element), elements|
+        elements[name] = element.dup
+      end
+      @transformers = original.transformers.dup
+      super
+    end
+
+    def dup(&block)
+      super.tap do |object|
+        object.eval_block(&block)
+        freeze
+      end
     end
 
     def eval_block(&block)
