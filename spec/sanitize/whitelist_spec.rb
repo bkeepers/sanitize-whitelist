@@ -100,6 +100,16 @@ describe Sanitize::Whitelist do
         :elements => ["a"], :attributes => {"a" => ["href"]}
       })
     end
+
+    it "accepts empty protocols" do
+      whitelist = Sanitize::Whitelist.new do
+        element("a").allow("href").protocols([])
+      end
+      expect(whitelist.to_h).to eq({
+        :protocols => {"a" => {"href" => []}},
+        :elements => ["a"], :attributes => {"a" => ["href"]}
+      })
+    end
   end
 
   describe "transform" do
