@@ -6,9 +6,9 @@ Problem: the `sanitize` gem uses a deeply nested hash to configure sanitization.
 
 This wraps it with real objects, which means:
 
-- [ ] #dup behaves as expected and returns a deep clone
-- [x] #to_h would create a hash that can be passed to the sanitize gem
-- [ ] The entire whitelist would get frozen after the yielded block.
+- The entire whitelist is frozen after the yielded block.
+- #dup behaves as expected and returns a deep clone
+- #to_h creates a hash that can be passed to the sanitize gem
 
 ## Installation
 
@@ -27,26 +27,26 @@ Or install it yourself as:
 ## Usage
 
 ```ruby
-Whitelist.new do |whitelist|
+Whitelist.new do
   # Explicitly declare elements that are allowed.
-  whitelist.allow %w(
+  allow %w(
     h1 h2 h3 h4 h5 h6 h7 h8 br b i strong em a pre code img tt
     div ins del sup sub p ol ul table thead tbody tfoot blockquote
     dl dt dd kbd q samp var hr ruby rt rp li tr td th s strike
   )
 
   # Elements to completely remove instead of escape.
-  whitelist.remove "script"
+  remove "script"
 
   # Allow href and src attributes, and specify the protocols that they can use.
-  whitelist["a"].allow("href").protocols('http', 'https', 'mailto', :relative, 'github-windows', 'github-mac')
-  whitelist["img"].allow("src").protocols('http', 'https', :relative)
+  element("a").allow("href").protocols('http', 'https', 'mailto', :relative, 'github-windows', 'github-mac')
+  element("img").allow("src").protocols('http', 'https', :relative)
 
   # Allow other elements on divs
-  whitelist["div"].allow %w(itemscope itemtype)
+  element("div").allow %w(itemscope itemtype)
 
   # All elements can have these attributes
-  whitelist[:all].allow %w(
+  element(:all).allow %w(
     abbr accept accept-charset accesskey action align alt axis border
     cellpadding cellspacing char charoff charset checked cite clear cols
     colspan color compact coords datetime dir disabled enctype for frame
@@ -58,25 +58,18 @@ Whitelist.new do |whitelist|
 
   # Top-level <li> elements are removed because they can break out of
   # containing markup.
-  LISTS     = Set.new(%w(ul ol).freeze)
-  LIST_ITEM = 'li'.freeze
-  whitelist.transform do |env|
+  transform do |env|
     name, node = env[:node_name], env[:node]
-    if name == LIST_ITEM && !node.ancestors.any?{ |n| LISTS.include?(n.name) }
+    if name == "li" && !node.ancestors.any?{ |n| %w(ul ol).include?(n.name) }
       node.replace(node.children)
     end
   end
 
   # Table child elements that are not contained by a <table> are removed.
-  #
-  # Otherwise they can be used to break out of places we're using tables to
-  # contain formatted user content (like pull request review comments).
-  TABLE_ITEMS = Set.new(%w(tr td th).freeze)
-  TABLE = 'table'.freeze
-  TABLE_SECTIONS = Set.new(%w(thead tbody tfoot).freeze)
-  whitelist.transform do |env|
+  # Otherwise they can be used to break out of containing markup.
+  transform do |env|
     name, node = env[:node_name], env[:node]
-    if (TABLE_SECTIONS.include?(name) || TABLE_ITEMS.include?(name)) && !node.ancestors.any? { |n| n.name == TABLE }
+    if (%w(thead tbody tfoot).include?(name) || %w(tr td th).include?(name)) && !node.ancestors.any? { |n| n.name == "table" }
       node.replace(node.children)
     end
   end

@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.version       = Sanitize::Whitelist::VERSION
   spec.authors       = ["Brandon Keepers"]
   spec.email         = ["brandon@opensoul.org"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
-  spec.homepage      = ""
+  spec.summary       = %q{Objects to represent a whitelist that can be used by the sanitize gem.}
+  spec.description   = %q{Objects to represent a whitelist that can be used by the sanitize gem.}
+  spec.homepage      = "https://github.com/bkeepers/sanitize-whitelist"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
